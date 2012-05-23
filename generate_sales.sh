@@ -15,3 +15,11 @@ python convert_to_table.py items_count/*
 python convert_to_table.py total_sales.csv
 python convert_to_table.py total_product_count.csv
 python make_site.py
+cd html
+ftp -nvi sitename << END_SCRIPT
+user user password 
+cd flowers
+mput *.html
+bye
+END_SCRIPT
+
