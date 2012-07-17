@@ -14,12 +14,14 @@ python convert_to_table.py product_count/*
 python convert_to_table.py items_count/*
 python convert_to_table.py total_sales.csv
 python convert_to_table.py total_product_count.csv
+python convert_to_table.py month.csv
+python convert_to_table.py week.csv
 python make_site.py
 cd html
-ftp -nvi sitename << END_SCRIPT
-user user password 
-cd flowers
-mput *.html
-bye
-END_SCRIPT
+#ftp -nvi sitename << END_SCRIPT
+#user (user) (password)
+#cd (output_directory)
+#mput *.html
+#bye
+#END_SCRIPT
 
