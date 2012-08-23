@@ -27,7 +27,7 @@ def make_month_links(year, month):
       if current.weekday() == 6:
          days.append( str(current.day) )
       else:
-         days.append("<a href=\"" + current.strftime("%y-%m-%d") + "\">" + str(current.day) + "</a>")
+         days.append("<a href=\"" + current.strftime("%Y-%m-%d") + ".html\">" + str(current.day) + "</a>")
       current += delta
    
    

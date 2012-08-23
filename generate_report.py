@@ -185,11 +185,26 @@ def get_transaction_id_days(cursor):
    return id_days
    
 def generate_daily_product_count(cursor):
-   sql = "CREATE TEMPORARY TABLE products_sold SELECT is_product, product_id, product_amount, timestamp FROM \
-      transaction_item INNER JOIN transaction_total ON transaction_item.transaction_id=transaction_total.transaction_id"
+   sql = "CREATE TEMPORARY TABLE products_sold SELECT product_id, product_amount, timestamp FROM \
+      transaction_item INNER JOIN transaction_total ON transaction_item.transaction_id=transaction_total.transaction_id \
+      WHERE is_product=1"
    cursor.execute(sql)
    sql = "CREATE TEMPORARY TABLE named_products_sold SELECT * FROM products_sold NATURAL JOIN products"
    cursor.execute(sql)
+   
+   sql = "CREATE TEMPORARY TABLE deals_sold SELECT product_id, product_amount, timestamp FROM \
+      transaction_item INNER JOIN transaction_total ON transaction_item.transaction_id=transaction_total.transaction_id \
+      WHERE is_product=0"
+   cursor.execute(sql)
+   sql = "CREATE TEMPORARY TABLE deals_sold_plus \
+      SELECT deals_sold.product_amount, deals_sold.timestamp, deal.deal_id, deal.product_id, deal.product_count \
+      FROM deals_sold INNER JOIN deal ON deals_sold.product_id=deal.deal_id"
+   cursor.execute(sql)
+   sql = "CREATE TEMPORARY TABLE products_from_deals SELECT product_id, timestamp, SUM(product_amount*product_count) AS products_count FROM deals_sold_plus"
+   cursor.execute(sql)
+   sql = "CREATE TEMPORARY TABLE named_products_from_deals SELECT prod_name, products_count, timestamp FROM products_from_deals INNER JOIN products"
+   cursor.execute(sql)
+   
    min_date, max_date = get_range_of_days(cursor)
    current_date = min_date
    day = datetime.timedelta(days=1)
@@ -205,10 +220,25 @@ def generate_daily_product_count_by_date(cursor, date):
    sql = "SELECT prod_name, sum(product_amount) FROM named_products_sold \
       WHERE timestamp LIKE '%s%%' GROUP BY prod_name " % date_string
    cursor.execute(sql)
-   product_counts = []
+   product_counts = {}
    for x in cursor.fetchall():
-      product_counts.append([x["prod_name"],x["sum(product_amount)"]])
-   product_counts.sort()
+      product_counts[x["prod_name"]] = x["sum(product_amount)"]
+   
+   # Get the deals part
+   sql = "SELECT prod_name, sum(products_count) FROM named_products_sold \
+      WHERE timestamp LIKE '%s%%' GROUP BY prod_name " % date_string
+   #
+  
+   for x in cursor.fetchall():
+      prod_name = x["prod_name"]
+      prod_count = x["sum(products_count)"]
+      if prod_name in product_counts:
+         product_counts[prod_name] += prod_count
+      else:
+         product_counts[prod_name] = prod_count
+      
+   product_counts = [[k,v] for k, v in product_counts.iteritems()]
+   product_counts.sort()   
    return [["Product","Count"]] + product_counts
    
 def generate_items_sold(cursor):   

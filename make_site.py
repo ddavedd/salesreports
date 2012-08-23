@@ -49,7 +49,7 @@ if __name__=="__main__":
       html = "<html>\n"
       # get all tables from tables folder
       output_date = d.strftime("%Y-%m-%d")
-      prefixes = ["daily_product", "daily_items", "hourly_sales"]
+      prefixes = ["hourly_sales", "daily_product", "daily_items" ]
       for p in prefixes:
          x = open("tables/" + p + output_date + ".html")
          html += x.read()
